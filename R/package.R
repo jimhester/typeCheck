@@ -50,19 +50,32 @@ label <- function(x) {
   }
 }
 
+object_type <- function(x) {
+  if (is.object(x)) {
+    return(class(x)[[1L]])
+  }
+  return(typeof(x))
+}
+
 check_create <- function(x, spec) {
   if (is.null(spec$check)) {
     return(x)
   }
   if (!is.null(spec$error)) {
-    error_msg <- error
+    error_msg_fun <- error
   } else {
-    error_msg <- "`%s` is not of type `%s`"
+    error_msg_fun <- function(obj_name, obj_value, type) {
+      sprintf("`%s` is a `%s` not a `%s`.",
+        obj_name,
+        if (is.object(obj_value)) class(obj_value)[[1L]]
+        else typeof(obj_value),
+        type)
+    }
   }
   bquote({
     `_value_` <- .(x)
     if (!isTRUE(.(spec$check)(`_value_`))) {
-      stop(sprintf(.(error_msg), .(label(x)), .(spec$name)), call. = FALSE)
+      stop((.(error_msg_fun))(.(label(x)), `_value_`, .(spec$name)), call. = FALSE)
     }
     `_value_`
   })
