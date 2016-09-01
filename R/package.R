@@ -117,7 +117,7 @@ add_checks <- function (x) {
       }
     }
     formals(x) <- fmls
-    body <- as.call(c(as.symbol("{"), chks, as.list(Recall(body(x)))))
+    body <- as.call(c(as.symbol("{"), chks, Recall(body(x))))
     body(x) <- body
     x
   }
