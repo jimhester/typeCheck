@@ -40,3 +40,19 @@ test_that("add_checks adds a check if a defined type in body", {
   expect_error(f2(1), NA)
   expect_error(f2("character"), "`blah` is a `character` not a `numeric`.")
 })
+
+test_that("compound checks", {
+  spec("unary",
+    check = function(x) length(x) == 1,
+    error = function(n, v, t) sprintf("`%s` has length `%s`, not `1`", n, length(v)))
+  spec("numeric", check = function(x) is.numeric(x))
+  spec("equals_one",
+    check = function(x) x == 1,
+    error = function(n, v, t) sprintf("`%s` equals `%s`, not `1`", n, deparse(v)))
+  f1 <- function(blah = ? unary) { blah ? numeric } ? equals_one
+  f2 <- add_checks(f1)
+
+  expect_error(f2(1:2), "`blah` has length `2`, not `1`")
+  expect_error(f2("txt"), "`blah` is a `character` not a `numeric`")
+  expect_error(f2(2), ".* equals `2`, not `1`")
+})

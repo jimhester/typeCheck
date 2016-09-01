@@ -43,10 +43,10 @@ label <- function(x) {
     as.character(x)
   } else {
     chr <- deparse(x)
-    if (length(chr) > 1) {
-      chr <- paste(deparse(as.call(list(x[[1]], quote(...)))), collapse = "\n")
-    }
-    chr
+    #if (length(chr) > 1) {
+      #chr <- paste(deparse(as.call(list(x[[1]], quote(...)))), collapse = "\n")
+    #}
+    paste(chr, collapse = "\n")
   }
 }
 
@@ -96,14 +96,18 @@ add_checks <- function (x) {
   else if (is.call(x)) {
     if (spec_exists(x) && length(x) == 3L) {
       spec <- spec_get(as.character(x[[3]]))
-      spec_check(x[[2]], spec)
+      if (is.call(x[[2]])) {
+        spec_check(as.call(recurse(x[[2]])), spec)
+      } else {
+        spec_check(x[[2]], spec)
+      }
     } else {
       as.call(recurse(x))
     }
   }
   else if (is.function(x)) {
     fmls <- formals(x)
-    chks <- vector(mode = "list", length = length(fmls))
+    chks <- list()
     for (i in seq_along(fmls)) {
       if (spec_exists(fmls[[i]])) {
         if (length(fmls[[i]]) == 2) { # no default argument
