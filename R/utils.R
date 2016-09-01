@@ -4,3 +4,7 @@ sQuote <- function(x) {
   }
   paste0("'", x, "'")
 }
+
+`%===%` <- identical
+
+`%!==%` <- Negate(identical)

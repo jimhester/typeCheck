@@ -8,6 +8,14 @@ test_that("add_checks fails if an undefined type", {
   expect_error(add_checks(f1), "'numeric' is an undefined type")
 })
 
+test_that("add_checks adds a check if a defined type in formals", {
+  spec("numeric", check = function(x) is.numeric(x))
+  f1 <- function(blah = 1 ? numeric) blah
+  f2 <- add_checks(f1)
+  expect_error(f2(1), NA)
+  expect_error(f2("character"), "`blah` is a `character` not a `numeric`.")
+})
+
 test_that("add_checks adds a check if a defined type in body", {
   spec("numeric", check = function(x) is.numeric(x))
   f1 <- function(blah) blah ? numeric

@@ -57,12 +57,13 @@ object_type <- function(x) {
   return(typeof(x))
 }
 
-check_create <- function(x, spec) {
-  if (is.null(spec$check)) {
-    return(x)
-  }
+spec_exists <- function(x) {
+  is.call(x) && x[[1]] %===% as.symbol("?")
+}
+
+spec_check <- function(x, spec = NULL) {
   if (!is.null(spec$error)) {
-    error_msg_fun <- error
+    error_msg_fun <- spec$error
   } else {
     error_msg_fun <- function(obj_name, obj_value, type) {
       sprintf("`%s` is a `%s` not a `%s`.",
@@ -81,48 +82,56 @@ check_create <- function(x, spec) {
   })
 }
 
+braced_body <- function(x) {
+  is.call(x) && x[[1]] %===% as.symbol("{")
+}
 
-add_checks <- function (x, body = NULL) {
-    recurse <- function(y) {
-        lapply(y, add_checks)
+add_checks <- function (x) {
+  recurse <- function(y) {
+    lapply(y, add_checks)
+  }
+  if (is.atomic(x) || is.name(x)) {
+    x
+  }
+  else if (is.call(x)) {
+    if (spec_exists(x) && length(x) == 3L) {
+      spec <- spec_get(as.character(x[[3]]))
+      spec_check(x[[2]], spec)
+    } else {
+      as.call(recurse(x))
     }
-    if (is.atomic(x) || is.name(x)) {
-      x
-    }
-    else if (is.call(x)) {
-      if (identical(x[[1]], as.symbol("?"))) {
-        if (length(x) == 3) {
-          spec <- spec_get(as.character(x[[3]]))
-
-          # if body is null we are within a function body, so add the checks immediately before the previous call
-          if (is.null(body)) {
-            check_create(x[[2]], spec)
-          }
-        } else {
-          # ?(x) call, This should only occur for arguments with no default
-          spec <- spec_get(as.character(x[[2]]))
-          quote(expr = )
+  }
+  else if (is.function(x)) {
+    fmls <- formals(x)
+    chks <- vector(mode = "list", length = length(fmls))
+    for (i in seq_along(fmls)) {
+      if (spec_exists(fmls[[i]])) {
+        if (length(fmls[[i]]) == 2) { # no default argument
+          s <- spec_get(as.character(fmls[[i]][[2]]))
+          fmls[[i]] <- quote(expr = )
+        } else if (length(fmls[[i]]) == 3) { # default argument
+          s <- spec_get(as.character(fmls[[i]][[3]]))
+          fmls[[i]] <- fmls[[i]][[2]]
         }
-      } else {
-        as.call(recurse(x))
+        chks[[i]] <- spec_check(as.symbol(names(fmls)[[i]]), s)
       }
     }
-    else if (is.function(x)) {
-        formals(x) <- Recall(formals(x), body = body(x))
-        body(x) <- Recall(body(x))
-        x
-    }
-    else if (is.pairlist(x)) {
-        as.pairlist(recurse(x))
-    }
-    else if (is.expression(x)) {
-        as.expression(recurse(x))
-    }
-    else if (is.list(x)) {
-        recurse(x)
-    }
-    else {
-        stop("Unknown language class: ", paste(class(x), collapse = "/"),
-            call. = FALSE)
-    }
+    formals(x) <- fmls
+    body <- as.call(c(as.symbol("{"), chks, as.list(Recall(body(x)))))
+    body(x) <- body
+    x
+  }
+  else if (is.pairlist(x)) {
+    as.pairlist(recurse(x))
+  }
+  else if (is.expression(x)) {
+    as.expression(recurse(x))
+  }
+  else if (is.list(x)) {
+    recurse(x)
+  }
+  else {
+    stop("Unknown language class: ", paste(class(x), collapse = "/"),
+      call. = FALSE)
+  }
 }
