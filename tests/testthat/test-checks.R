@@ -1,4 +1,5 @@
 context("checks")
+library(types)
 
 test_that("add_checks fails if an undefined type", {
   f1 <- function(blah = ? numeric) blah + 1
@@ -38,7 +39,7 @@ test_that("add_checks adds a check if a defined type in body", {
   f1 <- function(blah) blah ? numeric
   f2 <- add_checks(f1)
   expect_error(f2(1), NA)
-  expect_error(f2("character"), "`blah` is a `character` not a `numeric`.")
+  expect_error(f2("character"), "`f1\\(\\)` is a `character` not a `numeric`.")
 })
 
 test_that("compound checks", {
@@ -54,5 +55,5 @@ test_that("compound checks", {
 
   expect_error(f2(1:2), "`blah` has length `2`, not `1`")
   expect_error(f2("txt"), "`blah` is a `character` not a `numeric`")
-  expect_error(f2(2), ".* equals `2`, not `1`")
+  expect_error(f2(2),"`f1\\(\\)` equals `2`, not `1`") #TODO: special case return values, e.g. f2()
 })

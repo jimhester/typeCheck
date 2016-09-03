@@ -2,7 +2,13 @@ spec <- function(
   name,
   check = NULL,
   document = NULL,
-  error = NULL,
+  error = function(obj_name, obj_value) {
+      sprintf("`%s` is a `%s` not a `%s`.",
+        obj_name,
+        if (is.object(obj_value)) class(obj_value)[[1L]]
+        else typeof(obj_value),
+        name)
+  },
   machine_type = NULL,
   ...) {
   s <- structure(class = c(paste(name, "spec", sep = "_"), "spec"),
@@ -61,22 +67,15 @@ spec_exists <- function(x) {
   is.call(x) && x[[1]] %===% as.symbol("?")
 }
 
-spec_check <- function(x, spec = NULL) {
-  if (!is.null(spec$error)) {
-    error_msg_fun <- spec$error
-  } else {
-    error_msg_fun <- function(obj_name, obj_value, type) {
-      sprintf("`%s` is a `%s` not a `%s`.",
-        obj_name,
-        if (is.object(obj_value)) class(obj_value)[[1L]]
-        else typeof(obj_value),
-        type)
-    }
+spec_check <- function(x, type, name = label(x)) {
+  if (is.null(spec_get(type))) {
+    stop("`", type, "` is an undefined type", call. = FALSE)
   }
   bquote({
     `_value_` <- .(x)
-    if (!isTRUE(.(spec$check)(`_value_`))) {
-      stop((.(error_msg_fun))(.(label(x)), `_value_`, .(spec$name)), call. = FALSE)
+    `_spec_` <- typeCheck::spec_get(.(type))
+    if (!isTRUE(`_spec_`$check(`_value_`))) {
+      stop(`_spec_`$error(.(name), `_value_`), call. = FALSE)
     }
     `_value_`
   })
@@ -95,11 +94,11 @@ add_checks <- function (x) {
   }
   else if (is.call(x)) {
     if (spec_exists(x) && length(x) == 3L) {
-      spec <- spec_get(as.character(x[[3]]))
+      type <- as.character(x[[3]])
       if (is.call(x[[2]])) {
-        spec_check(as.call(recurse(x[[2]])), spec)
+        spec_check(as.call(recurse(x)), type, as.character(x[[2]]))
       } else {
-        spec_check(x[[2]], spec)
+        spec_check(x, type, as.character(x[[2]]))
       }
     } else {
       as.call(recurse(x))
@@ -111,17 +110,28 @@ add_checks <- function (x) {
     for (i in seq_along(fmls)) {
       if (spec_exists(fmls[[i]])) {
         if (length(fmls[[i]]) == 2) { # no default argument
-          s <- spec_get(as.character(fmls[[i]][[2]]))
-          fmls[[i]] <- quote(expr = )
+          type <- as.character(fmls[[i]][[2]])
+          #fmls[[i]] <- quote(expr = )
         } else if (length(fmls[[i]]) == 3) { # default argument
-          s <- spec_get(as.character(fmls[[i]][[3]]))
-          fmls[[i]] <- fmls[[i]][[2]]
+          type <- as.character(fmls[[i]][[3]])
+          #fmls[[i]] <- fmls[[i]][[2]]
         }
-        chks[[i]] <- spec_check(as.symbol(names(fmls)[[i]]), s)
+        chks[[i]] <- spec_check(as.symbol(names(fmls)[[i]]), type)
       }
     }
+
+    body <- body(x)
+    # check for type on function return
+    if (spec_exists(body)) {
+      label <- paste0(deparse(substitute(x)), "()")
+      type <- as.character(body[[3]])
+      body[[2]] <- as.call(c(as.symbol("{"), chks, Recall(body[[2]])))
+      body <- spec_check(body, type, label)
+    } else {
+      body <- as.call(c(as.symbol("{"), chks, Recall(body)))
+    }
+
     formals(x) <- fmls
-    body <- as.call(c(as.symbol("{"), chks, Recall(body(x))))
     body(x) <- body
     x
   }
