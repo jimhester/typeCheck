@@ -4,7 +4,6 @@ types <- new.env(parent = emptyenv())
 type <- function(
   name,
   check = NULL,
-  document = NULL,
   error = function(obj_name, obj_value) {
       sprintf("`%s` is a `%s` not a `%s`.",
         obj_name,
@@ -12,6 +11,7 @@ type <- function(
         else typeof(obj_value),
         name)
   },
+  document = NULL,
   machine_type = NULL,
   ...) {
   res <- structure(class = c(paste(name, "type", sep = "_"), "type"),
@@ -68,7 +68,7 @@ type_exists <- function(x) {
   is.call(x) && x[[1]] %===% as.symbol("?")
 }
 
-type_check <- function(x, type, name = label(x)) {
+add_check <- function(x, type, name = label(x)) {
   if (is.null(type_get(type))) {
     stop("`", type, "` is an undefined type", call. = FALSE)
   }
@@ -87,9 +87,9 @@ braced_body <- function(x) {
 }
 
 #' @export
-add_checks <- function (x) {
+type_check <- function (x) {
   recurse <- function(y) {
-    lapply(y, add_checks)
+    lapply(y, type_check)
   }
   if (is.atomic(x) || is.name(x)) {
     x
@@ -98,9 +98,9 @@ add_checks <- function (x) {
     if (type_exists(x) && length(x) == 3L) {
       type <- as.character(x[[3]])
       if (is.call(x[[2]])) {
-        type_check(as.call(recurse(x)), type, as.character(x[[2]]))
+        add_check(as.call(recurse(x)), type, as.character(x[[2]]))
       } else {
-        type_check(x, type, as.character(x[[2]]))
+        add_check(x, type, as.character(x[[2]]))
       }
     } else {
       as.call(recurse(x))
@@ -116,7 +116,7 @@ add_checks <- function (x) {
         } else if (length(fmls[[i]]) == 3) { # default argument
           type <- as.character(fmls[[i]][[3]])
         }
-        chks[[length(chks) + 1]] <- type_check(as.symbol(names(fmls)[[i]]), type)
+        chks[[length(chks) + 1]] <- add_check(as.symbol(names(fmls)[[i]]), type)
       }
     }
 
@@ -126,7 +126,7 @@ add_checks <- function (x) {
       label <- paste0(deparse(substitute(x)), "()")
       type <- as.character(body[[3]])
       body[[2]] <- as.call(c(as.symbol("{"), chks, Recall(body[[2]])))
-      body <- type_check(body, type, label)
+      body <- add_check(body, type, label)
     } else if (length(chks) > 0){
       body <- as.call(c(as.symbol("{"), chks, Recall(body)))
     }
