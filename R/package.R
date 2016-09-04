@@ -73,12 +73,12 @@ type_check <- function(x, type, name = label(x)) {
     stop("`", type, "` is an undefined type", call. = FALSE)
   }
   bquote({
-    `_value_` <- .(x)
+    `_value_` <- withVisible(.(x))
     `_type_` <- typeCheck::type_get(.(type))
-    if (!isTRUE(`_type_`$check(`_value_`))) {
-      stop(`_type_`$error(.(name), `_value_`), call. = FALSE)
+    if (!isTRUE(`_type_`$check(`_value_`$value))) {
+      stop(`_type_`$error(.(name), `_value_`$value), call. = FALSE)
     }
-    `_value_`
+    if (`_value_`$visible) `_value_`$value else invisible(`_value_`$value)
   })
 }
 
