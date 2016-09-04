@@ -27,14 +27,10 @@ type <- function(
 }
 
 type_register <- function(x) {
-  types[[x$name]] <<- x
-}
-type_clear <- function(x = NULL) {
-  if (is.null(x)) {
-    types <<- new.env(parent = emptyenv())
-  }
+  types[[x$name]] <- x
 }
 
+#' @export
 type_get <- function(name) {
   if (!exists(name, types)) {
     stop(sQuote(name), " is an undefined type", call. = FALSE)
@@ -154,6 +150,6 @@ type_check <- function (x) {
 }
 
 #' @export
-print.checked_function <- function(x) {
+print.checked_function <- function(x, ...) {
   print(attr(x, "original_fun"))
 }
