@@ -1,10 +1,13 @@
-sQuote <- function(x) {
+sQuote <- function(x, quote = "'") {
   if (!length(x)) {
     return(character())
   }
-  paste0("'", x, "'")
+  paste0(quote, x, quote)
 }
 
-`%===%` <- identical
+bQuote <- function(x) sQuote(x, "`")
+dQuote <- function(x) sQuote(x, "\"")
 
-`%!==%` <- Negate(identical)
+`%===%` <- function(x, y) identical(x, y)
+
+`%!==%` <- Negate(`%===%`)

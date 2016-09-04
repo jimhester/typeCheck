@@ -32,9 +32,6 @@ type_register <- function(x) {
 
 #' @export
 type_get <- function(name) {
-  if (!exists(name, types)) {
-    stop(sQuote(name), " is an undefined type", call. = FALSE)
-  }
   types[[name]]
 }
 
@@ -59,7 +56,7 @@ type_exists <- function(x) {
 
 add_check <- function(x, type, name = label(x)) {
   if (is.null(type_get(type))) {
-    stop("`", type, "` is an undefined type", call. = FALSE)
+    stop(sQuote(type), " is an undefined type", call. = FALSE)
   }
   bquote({
     `_value_` <- withVisible(.(x))
@@ -81,11 +78,7 @@ type_check <- function (x) {
   else if (is.call(x)) {
     if (type_exists(x) && length(x) == 3L) {
       type <- as.character(x[[3]])
-      if (is.call(x[[2]])) {
-        add_check(as.call(recurse(x)), type, as.character(x[[2]]))
-      } else {
-        add_check(x, type, as.character(x[[2]]))
-      }
+      add_check(x, type, as.character(x[[2]]))
     } else {
       as.call(recurse(x))
     }
@@ -130,10 +123,10 @@ type_check <- function (x) {
   } else if (is.pairlist(x)) {
     as.pairlist(recurse(x))
   }
-  else {
+  else { # nocov start
     stop("Unknown language class: ", paste(class(x), collapse = "/"),
       call. = FALSE)
-  }
+  } # nocov end
 }
 
 #' @export

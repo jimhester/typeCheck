@@ -51,6 +51,19 @@ test_that("type_check adds a check if a defined type in formals", {
   expect_error(f2("character"), "`blah` is a `character` not a `numeric`.")
 })
 
+test_that("type_check works with a call", {
+  type("unary",
+    check = function(x) length(x) == 1,
+    error = function(n, v, t) sprintf("`%s` has length `%s`, not `1`", n, length(v)))
+
+  f1 <- function(x) x ? numeric ? unary
+  f2 <- type_check(f1)
+
+  expect_error(f2(1), NA)
+  expect_error(f2("1"), "`x` is a `character` not a `numeric`.")
+  expect_error(f2(c(1, 2)), "`f1\\(\\)` has length `2`, not `1`")
+})
+
 test_that("type_check adds a check if a defined type in body", {
   type("numeric", check = function(x) is.numeric(x))
   f1 <- function(blah) blah ? numeric
