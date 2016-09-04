@@ -1,5 +1,22 @@
-context("checks")
+context("add_checks")
 library(types)
+
+test_that("functions without checks", {
+  f <- function(x, y = 10) x + 10
+  f2 <- add_checks(f)
+  expect_identical(body(f2), body(f))
+  expect_identical(formals(f2), formals(f))
+
+  f <- function() { }
+  f2 <- add_checks(f)
+  expect_identical(body(f2), body(f))
+  expect_identical(formals(f2), formals(f))
+
+  f <- function(x = 10 + 10, y = 20 && FALSE) { x * y }
+  f2 <- add_checks(f)
+  expect_identical(body(f2), body(f))
+  expect_identical(formals(f2), formals(f))
+})
 
 test_that("add_checks fails if an undefined type", {
   f1 <- function(blah = ? numeric) blah + 1

@@ -116,7 +116,7 @@ add_checks <- function (x) {
         } else if (length(fmls[[i]]) == 3) { # default argument
           type <- as.character(fmls[[i]][[3]])
         }
-        chks[[i]] <- type_check(as.symbol(names(fmls)[[i]]), type)
+        chks[[length(chks) + 1]] <- type_check(as.symbol(names(fmls)[[i]]), type)
       }
     }
 
@@ -127,7 +127,7 @@ add_checks <- function (x) {
       type <- as.character(body[[3]])
       body[[2]] <- as.call(c(as.symbol("{"), chks, Recall(body[[2]])))
       body <- type_check(body, type, label)
-    } else {
+    } else if (length(chks) > 0){
       body <- as.call(c(as.symbol("{"), chks, Recall(body)))
     }
 
