@@ -9,12 +9,12 @@ test_that("functions without checks", {
 
   f <- function() { }
   f2 <- type_check(f)
-  expect_identical(body(f2), body(f))
+  expect_equal(body(f2), body(f))
   expect_identical(formals(f2), formals(f))
 
   f <- function(x = 10 + 10, y = 20 && FALSE) { x * y }
   f2 <- type_check(f)
-  expect_identical(body(f2), body(f))
+  expect_equal(body(f2), body(f))
   expect_identical(formals(f2), formals(f))
 })
 
@@ -75,6 +75,18 @@ test_that("compound checks", {
   expect_error(f2(2),"`f1\\(\\)` equals `2`, not `1`")
 })
 
+test_that("checks are found recursively", {
+  type("numeric", check = function(x) is.numeric(x))
+
+  f <- function(x) {
+    ff <- function(y) y ? numeric
+    ff(x)
+  }
+  f2 <- type_check(f)
+
+  expect_error(f2("txt"), "`y` is a `character` not a `numeric`")
+})
+
 test_that("visibility preserved", {
   type("numeric", check = function(x) is.numeric(x))
   f1 <- function(foo = ? numeric) {
@@ -92,4 +104,15 @@ test_that("visibility preserved", {
   res <- withVisible(f2(1))
   expect_false(res$visible)
   expect_equal(res$value, 1)
+})
+
+test_that("print.type_check prints the original function definition", {
+  type("numeric", check = function(x) is.numeric(x))
+  f1 <- function(foo = ? numeric) {
+    foo
+  }
+  f2 <- type_check(f1)
+  expect_equal(
+    capture_output(print(f2)),
+    capture_output(print(f1)))
 })

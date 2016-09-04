@@ -53,13 +53,6 @@ label <- function(x) {
   }
 }
 
-object_type <- function(x) {
-  if (is.object(x)) {
-    return(class(x)[[1L]])
-  }
-  return(typeof(x))
-}
-
 type_exists <- function(x) {
   is.call(x) && x[[1]] %===% as.symbol("?")
 }
@@ -71,15 +64,10 @@ add_check <- function(x, type, name = label(x)) {
   bquote({
     `_value_` <- withVisible(.(x))
     `_type_` <- typeCheck::type_get(.(type))
-    if (!isTRUE(`_type_`$check(`_value_`$value))) {
+    if (!isTRUE(`_type_`$check(`_value_`$value)))
       stop(`_type_`$error(.(name), `_value_`$value), call. = FALSE)
-    }
     if (`_value_`$visible) `_value_`$value else invisible(`_value_`$value)
   })
-}
-
-braced_body <- function(x) {
-  is.call(x) && x[[1]] %===% as.symbol("{")
 }
 
 #' @export
@@ -117,31 +105,30 @@ type_check <- function (x) {
     }
 
     body <- body(x)
+
     # check for type on function return
-    if (type_exists(body)) {
+    if (type_exists(body(x))) {
       label <- paste0(deparse(substitute(x)), "()")
       type <- as.character(body[[3]])
       body[[2]] <- as.call(c(as.symbol("{"), chks, Recall(body[[2]])))
       body <- add_check(body, type, label)
-    } else if (length(chks) > 0){
-      body <- as.call(c(as.symbol("{"), chks, Recall(body)))
+    } else { # Otherwise just recall on the body
+      body <- Recall(body(x))
     }
 
-    y <- x
-    formals(x) <- fmls
-    body(x) <- body
-    class(x) <- c("checked_function", class(x))
-    attr(x, "original_fun") <- y
-    x
-  }
-  else if (is.pairlist(x)) {
+    # Add argument checks if needed
+    if (length(chks) > 0){
+      body <- as.call(c(as.symbol("{"), chks, body))
+    }
+
+    res <- x
+    formals(res) <- fmls
+    body(res) <- body
+    class(res) <- c("checked_function", class(x))
+    attr(res, "original_fun") <- x
+    res
+  } else if (is.pairlist(x)) {
     as.pairlist(recurse(x))
-  }
-  else if (is.expression(x)) {
-    as.expression(recurse(x))
-  }
-  else if (is.list(x)) {
-    recurse(x)
   }
   else {
     stop("Unknown language class: ", paste(class(x), collapse = "/"),
