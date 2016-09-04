@@ -1,3 +1,6 @@
+types <- new.env(parent = emptyenv())
+
+#' @export
 type <- function(
   name,
   check = NULL,
@@ -23,8 +26,6 @@ type <- function(
   invisible(res)
 }
 
-types <- new.env(parent = emptyenv())
-
 type_register <- function(x) {
   types[[x$name]] <<- x
 }
@@ -49,9 +50,9 @@ label <- function(x) {
     as.character(x)
   } else {
     chr <- deparse(x)
-    #if (length(chr) > 1) {
-      #chr <- paste(deparse(as.call(list(x[[1]], quote(...)))), collapse = "\n")
-    #}
+    if (length(chr) > 1) {
+      chr <- paste(deparse(as.call(list(x[[1]], quote(...)))), collapse = "\n")
+    }
     paste(chr, collapse = "\n")
   }
 }
@@ -85,6 +86,7 @@ braced_body <- function(x) {
   is.call(x) && x[[1]] %===% as.symbol("{")
 }
 
+#' @export
 add_checks <- function (x) {
   recurse <- function(y) {
     lapply(y, add_checks)
@@ -111,10 +113,8 @@ add_checks <- function (x) {
       if (type_exists(fmls[[i]])) {
         if (length(fmls[[i]]) == 2) { # no default argument
           type <- as.character(fmls[[i]][[2]])
-          #fmls[[i]] <- quote(expr = )
         } else if (length(fmls[[i]]) == 3) { # default argument
           type <- as.character(fmls[[i]][[3]])
-          #fmls[[i]] <- fmls[[i]][[2]]
         }
         chks[[i]] <- type_check(as.symbol(names(fmls)[[i]]), type)
       }
@@ -131,8 +131,11 @@ add_checks <- function (x) {
       body <- as.call(c(as.symbol("{"), chks, Recall(body)))
     }
 
+    y <- x
     formals(x) <- fmls
     body(x) <- body
+    class(x) <- c("checked_function", class(x))
+    attr(x, "original_fun") <- y
     x
   }
   else if (is.pairlist(x)) {
@@ -148,4 +151,9 @@ add_checks <- function (x) {
     stop("Unknown language class: ", paste(class(x), collapse = "/"),
       call. = FALSE)
   }
+}
+
+#' @export
+print.checked_function <- function(x) {
+  print(attr(x, "original_fun"))
 }
