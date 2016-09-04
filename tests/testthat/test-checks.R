@@ -72,7 +72,7 @@ test_that("compound checks", {
 
   expect_error(f2(1:2), "`blah` has length `2`, not `1`")
   expect_error(f2("txt"), "`blah` is a `character` not a `numeric`")
-  expect_error(f2(2),"`f1\\(\\)` equals `2`, not `1`") #TODO: typeial case return values, e.g. f2()
+  expect_error(f2(2),"`f1\\(\\)` equals `2`, not `1`")
 })
 
 test_that("visibility preserved", {
