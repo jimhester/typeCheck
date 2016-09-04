@@ -1,4 +1,4 @@
-spec <- function(
+type <- function(
   name,
   check = NULL,
   document = NULL,
@@ -11,34 +11,34 @@ spec <- function(
   },
   machine_type = NULL,
   ...) {
-  s <- structure(class = c(paste(name, "spec", sep = "_"), "spec"),
+  res <- structure(class = c(paste(name, "type", sep = "_"), "type"),
     list(
       name = name,
       check = check,
       document = document,
       error = error,
       machine_type = machine_type))
-  spec_register(s)
+  type_register(res)
 
-  invisible(s)
+  invisible(res)
 }
 
-specs <- new.env(parent = emptyenv())
+types <- new.env(parent = emptyenv())
 
-spec_register <- function(x) {
-  specs[[x$name]] <<- x
+type_register <- function(x) {
+  types[[x$name]] <<- x
 }
-spec_clear <- function(x = NULL) {
+type_clear <- function(x = NULL) {
   if (is.null(x)) {
-    specs <<- new.env(parent = emptyenv())
+    types <<- new.env(parent = emptyenv())
   }
 }
 
-spec_get <- function(name) {
-  if (!exists(name, specs)) {
+type_get <- function(name) {
+  if (!exists(name, types)) {
     stop(sQuote(name), " is an undefined type", call. = FALSE)
   }
-  specs[[name]]
+  types[[name]]
 }
 
 # testthat:::label
@@ -63,19 +63,19 @@ object_type <- function(x) {
   return(typeof(x))
 }
 
-spec_exists <- function(x) {
+type_exists <- function(x) {
   is.call(x) && x[[1]] %===% as.symbol("?")
 }
 
-spec_check <- function(x, type, name = label(x)) {
-  if (is.null(spec_get(type))) {
+type_check <- function(x, type, name = label(x)) {
+  if (is.null(type_get(type))) {
     stop("`", type, "` is an undefined type", call. = FALSE)
   }
   bquote({
     `_value_` <- .(x)
-    `_spec_` <- typeCheck::spec_get(.(type))
-    if (!isTRUE(`_spec_`$check(`_value_`))) {
-      stop(`_spec_`$error(.(name), `_value_`), call. = FALSE)
+    `_type_` <- typeCheck::type_get(.(type))
+    if (!isTRUE(`_type_`$check(`_value_`))) {
+      stop(`_type_`$error(.(name), `_value_`), call. = FALSE)
     }
     `_value_`
   })
@@ -93,12 +93,12 @@ add_checks <- function (x) {
     x
   }
   else if (is.call(x)) {
-    if (spec_exists(x) && length(x) == 3L) {
+    if (type_exists(x) && length(x) == 3L) {
       type <- as.character(x[[3]])
       if (is.call(x[[2]])) {
-        spec_check(as.call(recurse(x)), type, as.character(x[[2]]))
+        type_check(as.call(recurse(x)), type, as.character(x[[2]]))
       } else {
-        spec_check(x, type, as.character(x[[2]]))
+        type_check(x, type, as.character(x[[2]]))
       }
     } else {
       as.call(recurse(x))
@@ -108,7 +108,7 @@ add_checks <- function (x) {
     fmls <- formals(x)
     chks <- list()
     for (i in seq_along(fmls)) {
-      if (spec_exists(fmls[[i]])) {
+      if (type_exists(fmls[[i]])) {
         if (length(fmls[[i]]) == 2) { # no default argument
           type <- as.character(fmls[[i]][[2]])
           #fmls[[i]] <- quote(expr = )
@@ -116,17 +116,17 @@ add_checks <- function (x) {
           type <- as.character(fmls[[i]][[3]])
           #fmls[[i]] <- fmls[[i]][[2]]
         }
-        chks[[i]] <- spec_check(as.symbol(names(fmls)[[i]]), type)
+        chks[[i]] <- type_check(as.symbol(names(fmls)[[i]]), type)
       }
     }
 
     body <- body(x)
     # check for type on function return
-    if (spec_exists(body)) {
+    if (type_exists(body)) {
       label <- paste0(deparse(substitute(x)), "()")
       type <- as.character(body[[3]])
       body[[2]] <- as.call(c(as.symbol("{"), chks, Recall(body[[2]])))
-      body <- spec_check(body, type, label)
+      body <- type_check(body, type, label)
     } else {
       body <- as.call(c(as.symbol("{"), chks, Recall(body)))
     }

@@ -10,7 +10,7 @@ test_that("add_checks fails if an undefined type", {
 })
 
 test_that("add_checks adds a check if a defined type in formals", {
-  spec("numeric", check = function(x) is.numeric(x))
+  type("numeric", check = function(x) is.numeric(x))
   f1 <- function(blah = 1 ? numeric) blah
   f2 <- add_checks(f1)
   expect_error(f2(), NA)
@@ -35,7 +35,7 @@ test_that("add_checks adds a check if a defined type in formals", {
 })
 
 test_that("add_checks adds a check if a defined type in body", {
-  spec("numeric", check = function(x) is.numeric(x))
+  type("numeric", check = function(x) is.numeric(x))
   f1 <- function(blah) blah ? numeric
   f2 <- add_checks(f1)
   expect_error(f2(1), NA)
@@ -43,11 +43,11 @@ test_that("add_checks adds a check if a defined type in body", {
 })
 
 test_that("compound checks", {
-  spec("unary",
+  type("unary",
     check = function(x) length(x) == 1,
     error = function(n, v, t) sprintf("`%s` has length `%s`, not `1`", n, length(v)))
-  spec("numeric", check = function(x) is.numeric(x))
-  spec("equals_one",
+  type("numeric", check = function(x) is.numeric(x))
+  type("equals_one",
     check = function(x) x == 1,
     error = function(n, v, t) sprintf("`%s` equals `%s`, not `1`", n, deparse(v)))
   f1 <- function(blah = ? unary) { blah ? numeric } ? equals_one
@@ -55,5 +55,5 @@ test_that("compound checks", {
 
   expect_error(f2(1:2), "`blah` has length `2`, not `1`")
   expect_error(f2("txt"), "`blah` is a `character` not a `numeric`")
-  expect_error(f2(2),"`f1\\(\\)` equals `2`, not `1`") #TODO: special case return values, e.g. f2()
+  expect_error(f2(2),"`f1\\(\\)` equals `2`, not `1`") #TODO: typeial case return values, e.g. f2()
 })
