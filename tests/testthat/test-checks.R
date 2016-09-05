@@ -1,5 +1,5 @@
+suppressPackageStartupMessages(library(types))
 context("type_check")
-library(types)
 
 test_that("functions without checks", {
   f <- function(x, y = 10) x + 10

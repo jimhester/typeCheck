@@ -1,9 +1,8 @@
 Package: typeCheck
-Title: Type checks for code.
+Title: Type Checks For Code
 Version: 0.0.0.9000
 Authors@R: person("Jim", "Hester", email = "james.f.hester@gmail.com", role = c("aut", "cre"))
-Description: Adds type checks to R code annotated with types as specified in
-the types package.
+Description: Adds type checks to R code annotated with types as specified in the types package.
 Depends:
     R (>= 3.3.0)
 Enhances: types

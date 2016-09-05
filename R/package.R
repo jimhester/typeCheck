@@ -1,9 +1,21 @@
 types <- new.env(parent = emptyenv())
 
+#' Define a new type
+#'
+#' @param name The name of the type (mandatory).
+#' @param check A checking function to apply if that type is specified (optional). The
+#' function is passed one argument, the value of the object.
+#' @param error An error function to apply if the check fails.
+#' (optional). The function is passed the object name and value in two arguments.
+#' @param document A character vector that contains the documentation
+#' annotation for the type, optional and currently unused.
+#' @param machine_type A character vector that contains the machine type annotation
+#' for the type, optional and currently unused.
+#' @param ... Additional optional fields.
 #' @export
 type <- function(
   name,
-  check = NULL,
+  check = function(x) TRUE,
   error = function(obj_name, obj_value) {
       sprintf("`%s` is a `%s` not a `%s`.",
         obj_name,
@@ -11,8 +23,8 @@ type <- function(
         else typeof(obj_value),
         name)
   },
-  document = NULL,
-  machine_type = NULL,
+  document = character(),
+  machine_type = character(),
   ...) {
   res <- structure(class = c(paste(name, "type", sep = "_"), "type"),
     list(
@@ -30,6 +42,10 @@ type_register <- function(x) {
   types[[x$name]] <- x
 }
 
+#' Retrieve a given type from the type registry
+#'
+#' @param name Type name to retrieve
+#' @return A type object if defined, or \code{NULL}
 #' @export
 type_get <- function(name) {
   types[[name]]
@@ -67,7 +83,33 @@ add_check <- function(x, type, name = label(x)) {
   })
 }
 
+#' Add type checks to annotated code
+#'
+#' This function adds type checking to code annotated with types.
+#' @param x The function or expression to be modified
+#' @return The modified code, if the input is a function the returned object
+#' has class \sQuote{checked_function} and the print method print the original
+#' function definition rather than the modifed code. If you would like to
+#' inspect the modified code use \code{body(x)}.
 #' @export
+#' @examples
+#' library(types)
+#'  type("unary",
+#'    check = function(x) length(x) == 1,
+#'    error = function(n, v, t) sprintf("`%s` has length `%s`, not `1`", n, length(v)))
+#'  type("numeric", check = function(x) is.numeric(x))
+#'  type("equals_one",
+#'    check = function(x) x == 1,
+#'    error = function(n, v, t) sprintf("`%s` equals `%s`, not `1`", n, deparse(v)))
+#'  f <- function(blah = ? unary) { blah ? numeric } ? equals_one
+#'  ff <- type_check(f)
+#'
+#' ff(1)
+#' \dontrun{
+#'  ff(1:2) # `blah` has length `2`, not `1`
+#'  ff("txt") # `blah` is a `character` not a `numeric`
+#'  ff(2) # `f1\\(\\)` equals `2`, not `1`
+#' }
 type_check <- function (x) {
   recurse <- function(y) {
     lapply(y, type_check)
@@ -112,6 +154,11 @@ type_check <- function (x) {
     # Add argument checks if needed
     if (length(chks) > 0){
       body <- as.call(c(as.symbol("{"), chks, body))
+    }
+
+    # If there were no annotations, just return x unchanged
+    if (identical(body, body(x)) && identical(fmls, formals(x))) {
+       return(x)
     }
 
     res <- x
