@@ -88,6 +88,29 @@ test_that("compound checks", {
   expect_error(f2(2),"`f1\\(\\)` equals `2`, not `1`")
 })
 
+test_that("restricted checks should only be included where requested", {
+  type("unary",
+    check = function(x) length(x) == 1,
+    error = function(n, v, t) sprintf("`%s` has length `%s`, not `1`", n, length(v)))
+  type("numeric", check = function(x) is.numeric(x))
+  type("equals_one",
+    check = function(x) x == 1,
+    error = function(n, v, t) sprintf("`%s` equals `%s`, not `1`", n, deparse(v)))
+  f1 <- function(blah = ? unary) { blah ? numeric } ? equals_one
+
+  expect_error(type_check(f1, "arguments")(1:2), "`blah` has length `2`, not `1`")
+  expect_error(type_check(f1, "arguments")("txt"), NA)
+  expect_error(type_check(f1, "arguments")(2), NA)
+
+  expect_error(type_check(f1, "return")(1:2), "`f1\\(\\)` equals `1:2`, not `1`")
+  expect_error(type_check(f1, "return")("txt"), "`f1\\(\\)` equals `\"txt\"`, not `1`")
+  expect_error(type_check(f1, "return")(2), "`f1\\(\\)` equals `2`, not `1`")
+
+  expect_error(type_check(f1, "body")(1:2), NA)
+  expect_error(type_check(f1, "body")("txt"), "`blah` is a `character` not a `numeric`")
+  expect_error(type_check(f1, "body")(2), NA)
+})
+
 test_that("checks are found recursively", {
   type("numeric", check = function(x) is.numeric(x))
 

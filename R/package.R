@@ -87,9 +87,11 @@ add_check <- function(x, type, name = label(x)) {
 #'
 #' This function adds type checking to code annotated with types.
 #' @param x The function or expression to be modified
+#' @param where The location to add type checks in a function, defaults to
+#' adding them everywhere (if annotations exist).
 #' @return The modified code, if the input is a function the returned object
 #' has class \sQuote{checked_function} and the print method print the original
-#' function definition rather than the modifed code. If you would like to
+#' function definition rather than the modified code. If you would like to
 #' inspect the modified code use \code{body(x)}.
 #' @export
 #' @examples
@@ -110,15 +112,17 @@ add_check <- function(x, type, name = label(x)) {
 #'  ff("txt") # `blah` is a `character` not a `numeric`
 #'  ff(2) # `f1\\(\\)` equals `2`, not `1`
 #' }
-type_check <- function (x) {
+type_check <- function (x, where = c("arguments", "body", "return")) {
+  where <- match.arg(where, several.ok = TRUE)
+
   recurse <- function(y) {
-    lapply(y, type_check)
+    lapply(y, type_check, where = where)
   }
   if (is.atomic(x) || is.name(x)) {
     x
   }
   else if (is.call(x)) {
-    if (type_exists(x) && length(x) == 3L) {
+    if (type_exists(x) && length(x) == 3L && "body" %in% where) {
       type <- as.character(x[[3]])
       add_check(x, type, as.character(x[[2]]))
     } else {
@@ -140,19 +144,26 @@ type_check <- function (x) {
     }
 
     body <- body(x)
+    has_return_type <- type_exists(body)
 
     # check for type on function return
-    if (type_exists(body(x))) {
+    if (has_return_type && "return" %in% where) {
       label <- paste0(deparse(substitute(x)), "()")
       type <- as.character(body[[3]])
-      body[[2]] <- as.call(c(as.symbol("{"), chks, Recall(body[[2]])))
+      if ("body" %in% where) {
+         body[[2]] <- Recall(body[[2]], where = where)
+      }
       body <- add_check(body, type, label)
-    } else { # Otherwise just recall on the body
-      body <- Recall(body(x))
+    } else if ("body" %in% where) { # Otherwise just recall on the body
+      if (has_return_type) {
+        body[[2]] <- Recall(body[[2]], where = where)
+      } else {
+        body <- Recall(body, where = where)
+      }
     }
 
     # Add argument checks if needed
-    if (length(chks) > 0){
+    if (length(chks) > 0 && "arguments" %in% where){
       body <- as.call(c(as.symbol("{"), chks, body))
     }
 
