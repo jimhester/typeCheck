@@ -155,6 +155,9 @@ type_check <- function (x, where = c("arguments", "body", "return")) {
       }
       body <- add_check(body, type, label)
     } else if ("body" %in% where) { # Otherwise just recall on the body
+
+      # If it has a return annotation, we only want to leave it intact and only
+      # Recall on the rest of the body
       if (has_return_type) {
         body[[2]] <- Recall(body[[2]], where = where)
       } else {
@@ -185,6 +188,19 @@ type_check <- function (x, where = c("arguments", "body", "return")) {
     stop("Unknown language class: ", paste(class(x), collapse = "/"),
       call. = FALSE)
   } # nocov end
+}
+
+type_check_package <- function(libname, pkgname, ...) {
+  env <- asNamespace(pkgname)
+
+  objects <- ls(env, all.names = TRUE)
+  for (name in objects) {
+    fun <- get(name, envir = env)
+    if (!is.function(fun)) { return() }
+    fun <- type_check(fun, ...)
+    assign(name, fun, envir = env)
+    invisible()
+  }
 }
 
 #' @export
