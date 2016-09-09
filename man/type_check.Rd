@@ -4,15 +4,18 @@
 \alias{type_check}
 \title{Add type checks to annotated code}
 \usage{
-type_check(x)
+type_check(x, where = c("arguments", "body", "return"))
 }
 \arguments{
 \item{x}{The function or expression to be modified}
+
+\item{where}{The location to add type checks in a function, defaults to
+adding them everywhere (if annotations exist).}
 }
 \value{
 The modified code, if the input is a function the returned object
 has class \sQuote{checked_function} and the print method print the original
-function definition rather than the modifed code. If you would like to
+function definition rather than the modified code. If you would like to
 inspect the modified code use \code{body(x)}.
 }
 \description{

@@ -3,4 +3,5 @@
 S3method(print,checked_function)
 export(type)
 export(type_check)
+export(type_check_package)
 export(type_get)

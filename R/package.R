@@ -190,6 +190,13 @@ type_check <- function (x, where = c("arguments", "body", "return")) {
   } # nocov end
 }
 
+#' Add type checking to all functions in a package
+#'
+#' This function can either be placed at the end of the collation order, or in
+#' the \code{\link{.onLoad}} function.
+#' @inheritParams base::.onLoad
+#' @param ... Additional arguments passed to \code{\link{type_check}}
+#' @export
 type_check_package <- function(libname, pkgname, ...) {
   env <- asNamespace(pkgname)
 
