@@ -217,19 +217,19 @@ type_check_package <- function(...) {
 
       # Get the from argument from the makeLazyLoadDB call, which is the package
       # namespace
-      env <- get("from", sys.frame(find_parent("makeLazyLoadDB")))
+      env <- get("from", sys.frame(find_parent("makeLazyLoadDB"))) # nocov
       type_check_environment(env, ...)
     }))
 
   # Trace devtools:::run_ns_load_actions if devtools is loaded
-  if ("devtools" %in% loadedNamespaces()) {
+  if ("devtools" %in% loadedNamespaces()) { # nocov start
     suppressMessages(trace("run_ns_load_actions", print = FALSE, where = asNamespace("devtools"),
         function() {
           pkg <- get("pkg", envir = sys.frame(find_parent("run_ns_load_actions")))
           env <- getExportedValue("devtools", "ns_env")(pkg)
           type_check_environment(env, ...)
         }))
-  }
+  } #nocov end
 }
 
 type_check_environment <- function(env, ...) {
