@@ -207,27 +207,42 @@ type_check <- function (x, where = c("arguments", "body", "return")) {
 #' typeCheck::type_check_package()
 #' }
 type_check_package <- function(...) {
-  trace("makeLazyLoadDB", where = asNamespace("tools"), function() {
-
-    # installing documentation, so just return
-    if (is.na(find_parent("code2LazyLoadDB"))) {
-      return()
-    }
-
-    # Get the from argument from the makeLazyLoadDB call, which is the package
-    # namespace
-    env <- get("from", sys.frame(find_parent("makeLazyLoadDB")))
-
-    objects <- ls(env, all.names = TRUE)
-    for (name in objects) {
-      fun <- get(name, envir = env)
-      if (!is.function(fun)) {
-        next
+  # Trace makeLazyLoadDB
+  suppressMessages(trace("makeLazyLoadDB", print = FALSE, where = asNamespace("tools"),
+    function() {
+      # installing documentation, so just return
+      if (is.na(find_parent("code2LazyLoadDB"))) {
+        return()
       }
-      fun <- type_check(fun, ...)
-      assign(name, fun, envir = env)
+
+      # Get the from argument from the makeLazyLoadDB call, which is the package
+      # namespace
+      env <- get("from", sys.frame(find_parent("makeLazyLoadDB")))
+      type_check_environment(env, ...)
+    }))
+
+  # Trace devtools:::run_ns_load_actions if devtools is loaded
+  if ("devtools" %in% loadedNamespaces()) {
+    suppressMessages(trace("run_ns_load_actions", print = FALSE, where = asNamespace("devtools"),
+        function() {
+          pkg <- get("pkg", envir = sys.frame(find_parent("run_ns_load_actions")))
+          env <- getExportedValue("devtools", "ns_env")(pkg)
+          type_check_environment(env, ...)
+        }))
+  }
+}
+
+type_check_environment <- function(env, ...) {
+  # Modify all the top level functions in the package
+  objects <- ls(env, all.names = TRUE)
+  for (name in objects) {
+    fun <- get(name, envir = env)
+    if (!is.function(fun)) {
+      next
     }
-  })
+    fun <- type_check(fun, ...)
+    assign(name, fun, envir = env)
+  }
 }
 
 #' @export
