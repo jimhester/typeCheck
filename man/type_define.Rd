@@ -4,10 +4,10 @@
 \alias{type_define}
 \title{Define a new type}
 \usage{
-type_define(name, check = function(x) TRUE, error = function(obj_name,
-  obj_value) {     sprintf("`\%s` is a `\%s` not a `\%s`.", obj_name, if
+type_define(check = function(x) TRUE, error = function(obj_name, obj_value,
+  type) {     sprintf("`\%s` is a `\%s` not a `\%s`.", obj_name, if
   (is.object(obj_value))          class(obj_value)[[1L]]     else
-  typeof(obj_value), name) }, document = character(),
+  typeof(obj_value), type) }, document = character(),
   machine_type = character(), ...)
 }
 \arguments{
@@ -27,5 +27,16 @@ for the type, optional and currently unused.}
 }
 \description{
 Define a new type
+}
+\examples{
+type.character <- type_define( check = is.character)
+type.integer <- type_define( check = is.integer)
+prefix <- type_check(function(str = ? character, len = ? integer) {
+  substring(str, 1, len)
+})
+\dontrun{
+ prefix(10, 1), # `str` is a `double` not a `character`
+ prefix("foo", NULL), # `len` is a `NULL` not a `integer`
+}
 }
 

@@ -27,7 +27,7 @@ test_that("type_check fails if an undefined type", {
 })
 
 test_that("type_check adds a check if a defined type in formals", {
-  type.numeric <- type_define("numeric", check = function(x) is.numeric(x))
+  type.numeric <- type_define(check = function(x) is.numeric(x))
   f1 <- function(blah = 1 ? numeric) blah
   f2 <- type_check(f1)
   expect_error(f2(), NA)
@@ -52,8 +52,8 @@ test_that("type_check adds a check if a defined type in formals", {
 })
 
 test_that("type_check works with a call", {
-  type.numeric <- type_define("numeric", check = function(x) is.numeric(x))
-  type.unary <- type_define("unary", check = function(x) length(x) == 1,
+  type.numeric <- type_define(check = function(x) is.numeric(x))
+  type.unary <- type_define(check = function(x) length(x) == 1,
     error = function(n, v, t) sprintf("`%s` has length `%s`, not `1`", n, length(v)))
 
   f1 <- function(x) x ? numeric ? unary
@@ -65,7 +65,7 @@ test_that("type_check works with a call", {
 })
 
 test_that("type_check adds a check if a defined type in body", {
-  type.numeric <- type_define("numeric", check = function(x) is.numeric(x))
+  type.numeric <- type_define(check = function(x) is.numeric(x))
   f1 <- function(blah) blah ? numeric
   f2 <- type_check(f1)
   expect_error(f2(1), NA)
@@ -73,11 +73,11 @@ test_that("type_check adds a check if a defined type in body", {
 })
 
 test_that("compound checks", {
-  type.unary <- type_define("unary",
+  type.unary <- type_define(
     check = function(x) length(x) == 1,
     error = function(n, v, t) sprintf("`%s` has length `%s`, not `1`", n, length(v)))
-  type.numeric <- type_define("numeric", check = function(x) is.numeric(x))
-  type.equals_one <- type_define("equals_one",
+  type.numeric <- type_define(check = function(x) is.numeric(x))
+  type.equals_one <- type_define(
     check = function(x) x == 1,
     error = function(n, v, t) sprintf("`%s` equals `%s`, not `1`", n, deparse(v)))
   f1 <- function(blah = ? unary) { blah ? numeric } ? equals_one
@@ -89,11 +89,11 @@ test_that("compound checks", {
 })
 
 test_that("restricted checks should only be included where requested", {
-  type.unary <- type_define("unary",
+  type.unary <- type_define(
     check = function(x) length(x) == 1,
     error = function(n, v, t) sprintf("`%s` has length `%s`, not `1`", n, length(v)))
-  type.numeric <- type_define("numeric", check = function(x) is.numeric(x))
-  type.equals_one <- type_define("equals_one",
+  type.numeric <- type_define(check = function(x) is.numeric(x))
+  type.equals_one <- type_define(
     check = function(x) x == 1,
     error = function(n, v, t) sprintf("`%s` equals `%s`, not `1`", n, deparse(v)))
   f1 <- function(blah = ? unary) { blah ? numeric } ? equals_one
@@ -112,7 +112,7 @@ test_that("restricted checks should only be included where requested", {
 })
 
 test_that("checks are found recursively", {
-  type.numeric <- type_define("numeric", check = function(x) is.numeric(x))
+  type.numeric <- type_define(check = function(x) is.numeric(x))
 
   f <- function(x) {
     ff <- function(y) y ? numeric
@@ -124,7 +124,7 @@ test_that("checks are found recursively", {
 })
 
 test_that("visibility preserved", {
-  type.numeric <- type_define("numeric", check = function(x) is.numeric(x))
+  type.numeric <- type_define(check = function(x) is.numeric(x))
   f1 <- function(foo = ? numeric) {
     foo
   }
@@ -143,7 +143,7 @@ test_that("visibility preserved", {
 })
 
 test_that("print.type_check prints the original function definition", {
-  type.numeric <- type_define("numeric", check = function(x) is.numeric(x))
+  type.numeric <- type_define(check = function(x) is.numeric(x))
   f1 <- function(foo = ? numeric) {
     foo
   }

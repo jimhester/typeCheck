@@ -23,15 +23,15 @@ This function adds type checking to code annotated with types.
 }
 \examples{
 library(types)
- type("unary",
-   check = function(x) length(x) == 1,
-   error = function(n, v, t) sprintf("`\%s` has length `\%s`, not `1`", n, length(v)))
- type("numeric", check = function(x) is.numeric(x))
- type("equals_one",
-   check = function(x) x == 1,
-   error = function(n, v, t) sprintf("`\%s` equals `\%s`, not `1`", n, deparse(v)))
- f <- function(blah = ? unary) { blah ? numeric } ? equals_one
- ff <- type_check(f)
+type.unary <- type_define(
+  check = function(x) length(x) == 1,
+  error = function(n, v, t) sprintf("`\%s` has length `\%s`, not `1`", n, length(v)))
+type.numeric <- type_define( check = function(x) is.numeric(x))
+type.equals_one <- type_define(
+  check = function(x) x == 1,
+  error = function(n, v, t) sprintf("`\%s` equals `\%s`, not `1`", n, deparse(v)))
+f <- function(blah = ? unary) { blah ? numeric } ? equals_one
+ff <- type_check(f)
 
 ff(1)
 \dontrun{

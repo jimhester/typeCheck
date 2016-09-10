@@ -10,15 +10,24 @@
 #' for the type, optional and currently unused.
 #' @param ... Additional optional fields.
 #' @export
+#' @examples
+#' type.character <- type_define( check = is.character)
+#' type.integer <- type_define( check = is.integer)
+#' prefix <- type_check(function(str = ? character, len = ? integer) {
+#'   substring(str, 1, len)
+#' })
+#' \dontrun{
+#'  prefix(10, 1), # `str` is a `double` not a `character`
+#'  prefix("foo", NULL), # `len` is a `NULL` not a `integer`
+#' }
 type_define <- function(
-  name,
   check = function(x) TRUE,
-  error = function(obj_name, obj_value) {
+  error = function(obj_name, obj_value, type) {
       sprintf("`%s` is a `%s` not a `%s`.",
         obj_name,
         if (is.object(obj_value)) class(obj_value)[[1L]]
         else typeof(obj_value),
-        name)
+        type)
   },
   document = character(),
   machine_type = character(),
@@ -44,8 +53,8 @@ type <- function(name) {
 }
 
 #' @export
-type.default <- function(type) {
-  stop(sQuote(type), " is an undefined type", call. = FALSE)
+type.default <- function(name) {
+  stop(sQuote(name), " is an undefined type", call. = FALSE)
 }
 
 # testthat:::label
@@ -72,7 +81,7 @@ add_check <- function(x, type, name = label(x)) {
     `_value_` <- withVisible(.(x))
     `_type_` <- typeCheck::type(.(type))
     if (!isTRUE(`_type_`$check(`_value_`$value)))
-      stop(`_type_`$error(.(name), `_value_`$value), call. = FALSE)
+      stop(`_type_`$error(.(name), `_value_`$value, .(type)), call. = FALSE)
     if (`_value_`$visible) `_value_`$value else invisible(`_value_`$value)
   })
 }
@@ -90,15 +99,15 @@ add_check <- function(x, type, name = label(x)) {
 #' @export
 #' @examples
 #' library(types)
-#'  type("unary",
-#'    check = function(x) length(x) == 1,
-#'    error = function(n, v, t) sprintf("`%s` has length `%s`, not `1`", n, length(v)))
-#'  type("numeric", check = function(x) is.numeric(x))
-#'  type("equals_one",
-#'    check = function(x) x == 1,
-#'    error = function(n, v, t) sprintf("`%s` equals `%s`, not `1`", n, deparse(v)))
-#'  f <- function(blah = ? unary) { blah ? numeric } ? equals_one
-#'  ff <- type_check(f)
+#' type.unary <- type_define(
+#'   check = function(x) length(x) == 1,
+#'   error = function(n, v, t) sprintf("`%s` has length `%s`, not `1`", n, length(v)))
+#' type.numeric <- type_define( check = function(x) is.numeric(x))
+#' type.equals_one <- type_define(
+#'   check = function(x) x == 1,
+#'   error = function(n, v, t) sprintf("`%s` equals `%s`, not `1`", n, deparse(v)))
+#' f <- function(blah = ? unary) { blah ? numeric } ? equals_one
+#' ff <- type_check(f)
 #'
 #' ff(1)
 #' \dontrun{
@@ -186,9 +195,9 @@ type_check <- function (x, where = c("arguments", "body", "return")) {
 
 #' Add type checking to all functions in a package
 #'
-#' This function can either be placed at the end of the collation order, or as
-#' a drop-in for the \code{\link{.onLoad}} function.
-#' @inheritParams base::.onLoad
+#' This function can either be placed at the end of the collation order, or in
+#' the packages \code{\link{.onLoad}} function.
+#' @param env The package environment to modify functions in.
 #' @param ... Additional arguments passed to \code{\link{type_check}}
 #' @export
 #' @examples

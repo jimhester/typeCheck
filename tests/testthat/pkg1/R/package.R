@@ -1,8 +1,8 @@
 #' @importFrom typeCheck type type_define
 NULL
 
-type.character <- type_define("character", check = is.character)
-type.integer <- type_define("integer", check = is.integer)
+type.character <- type_define(check = is.character)
+type.integer <- type_define(check = is.integer)
 
 #' @export
 prefix <- function(str = ? character, len = ? integer) {

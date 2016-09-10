@@ -7,11 +7,13 @@
 type_check_package(env = parent.frame(), ...)
 }
 \arguments{
+\item{env}{The package environment to modify functions in.}
+
 \item{...}{Additional arguments passed to \code{\link{type_check}}}
 }
 \description{
-This function can either be placed at the end of the collation order, or as
-a drop-in for the \code{\link{.onLoad}} function.
+This function can either be placed at the end of the collation order, or in
+the packages \code{\link{.onLoad}} function.
 }
 \examples{
 \dontrun{
