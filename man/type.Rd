@@ -2,7 +2,7 @@
 % Please edit documentation in R/package.R
 \name{type}
 \alias{type}
-\title{Retrieve a given type from the type registry}
+\title{Retrieve a given type if defined}
 \usage{
 type(name)
 }
@@ -10,9 +10,9 @@ type(name)
 \item{name}{Type name to retrieve}
 }
 \value{
-A type object if defined, or \code{NULL}
+A type object
 }
 \description{
-Retrieve a given type from the type registry
+The default method signals an error
 }
 

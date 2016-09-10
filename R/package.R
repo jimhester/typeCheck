@@ -43,10 +43,11 @@ type_define <- function(
   }
 }
 
-#' Retrieve a given type from the type registry
+#' Retrieve a given type if defined
 #'
+#' The default method signals an error
 #' @param name Type name to retrieve
-#' @return A type object if defined, or \code{NULL}
+#' @return A type object
 #' @export
 type <- function(name) {
   UseMethod("type", structure(list(), class = name))
