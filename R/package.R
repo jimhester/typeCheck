@@ -1,8 +1,5 @@
-types <- new.env(parent = emptyenv())
-
 #' Define a new type
 #'
-#' @param name The name of the type (mandatory).
 #' @param check A checking function to apply if that type is specified (optional). The
 #' function is passed one argument, the value of the object.
 #' @param error An error function to apply if the check fails.
@@ -13,7 +10,7 @@ types <- new.env(parent = emptyenv())
 #' for the type, optional and currently unused.
 #' @param ... Additional optional fields.
 #' @export
-type <- function(
+type_define <- function(
   name,
   check = function(x) TRUE,
   error = function(obj_name, obj_value) {
@@ -25,21 +22,16 @@ type <- function(
   },
   document = character(),
   machine_type = character(),
-  ...) {
-  res <- structure(class = c(paste(name, "type", sep = "_"), "type"),
-    list(
-      name = name,
-      check = check,
-      document = document,
-      error = error,
-      machine_type = machine_type))
-  type_register(res)
-
-  invisible(res)
-}
-
-type_register <- function(x) {
-  types[[x$name]] <- x
+  ...){
+  function(type) {
+    structure(class = c(paste(type, "type", sep = "_"), "type"),
+      list(
+        name = type,
+        check = check,
+        document = document,
+        error = error,
+        machine_type = machine_type))
+  }
 }
 
 #' Retrieve a given type from the type registry
@@ -47,8 +39,13 @@ type_register <- function(x) {
 #' @param name Type name to retrieve
 #' @return A type object if defined, or \code{NULL}
 #' @export
-type_get <- function(name) {
-  types[[name]]
+type <- function(name) {
+  UseMethod("type", structure(list(), class = name))
+}
+
+#' @export
+type.default <- function(type) {
+  stop(sQuote(type), " is an undefined type", call. = FALSE)
 }
 
 # testthat:::label
@@ -71,12 +68,9 @@ type_exists <- function(x) {
 }
 
 add_check <- function(x, type, name = label(x)) {
-  if (is.null(type_get(type))) {
-    stop(sQuote(type), " is an undefined type", call. = FALSE)
-  }
   bquote({
     `_value_` <- withVisible(.(x))
-    `_type_` <- typeCheck::type_get(.(type))
+    `_type_` <- typeCheck::type(.(type))
     if (!isTRUE(`_type_`$check(`_value_`$value)))
       stop(`_type_`$error(.(name), `_value_`$value), call. = FALSE)
     if (`_value_`$visible) `_value_`$value else invisible(`_value_`$value)
@@ -192,18 +186,21 @@ type_check <- function (x, where = c("arguments", "body", "return")) {
 
 #' Add type checking to all functions in a package
 #'
-#' This function can either be placed at the end of the collation order, or in
-#' the \code{\link{.onLoad}} function.
+#' This function can either be placed at the end of the collation order, or as
+#' a drop-in for the \code{\link{.onLoad}} function.
 #' @inheritParams base::.onLoad
 #' @param ... Additional arguments passed to \code{\link{type_check}}
 #' @export
-type_check_package <- function(libname, pkgname, ...) {
-  env <- asNamespace(pkgname)
-
+#' @examples
+#' \dontrun{
+#' .onLoad <- typeCheck::type_check_package
+#'
+#'}
+type_check_package <- function(env = parent.frame(), ...) {
   objects <- ls(env, all.names = TRUE)
   for (name in objects) {
     fun <- get(name, envir = env)
-    if (!is.function(fun)) { return() }
+    if (!is.function(fun)) { next }
     fun <- type_check(fun, ...)
     assign(name, fun, envir = env)
     invisible()

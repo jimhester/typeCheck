@@ -5,6 +5,8 @@ Authors@R: person("Jim", "Hester", email = "james.f.hester@gmail.com", role = c(
 Description: Adds type checks to R code annotated with types as specified in the types package.
 Depends:
     R (>= 3.3.0)
+Imports:
+  pkgconfig
 Enhances: types
 License: MIT + file LICENSE
 Encoding: UTF-8

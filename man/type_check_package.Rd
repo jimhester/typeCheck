@@ -4,18 +4,19 @@
 \alias{type_check_package}
 \title{Add type checking to all functions in a package}
 \usage{
-type_check_package(libname, pkgname, ...)
+type_check_package(env = parent.frame(), ...)
 }
 \arguments{
-\item{libname}{a character string giving the library directory where
-    the package defining the namespace was found.}
-
-\item{pkgname}{a character string giving the name of the package.}
-
 \item{...}{Additional arguments passed to \code{\link{type_check}}}
 }
 \description{
-This function can either be placed at the end of the collation order, or in
-the \code{\link{.onLoad}} function.
+This function can either be placed at the end of the collation order, or as
+a drop-in for the \code{\link{.onLoad}} function.
+}
+\examples{
+\dontrun{
+.onLoad <- typeCheck::type_check_package
+
+}
 }
 

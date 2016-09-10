@@ -2,32 +2,17 @@
 % Please edit documentation in R/package.R
 \name{type}
 \alias{type}
-\title{Define a new type}
+\title{Retrieve a given type from the type registry}
 \usage{
-type(name, check = function(x) TRUE, error = function(obj_name, obj_value) {
-      sprintf("`\%s` is a `\%s` not a `\%s`.", obj_name, if
-  (is.object(obj_value))          class(obj_value)[[1L]]     else
-  typeof(obj_value), name) }, document = character(),
-  machine_type = character(), ...)
+type(name)
 }
 \arguments{
-\item{name}{The name of the type (mandatory).}
-
-\item{check}{A checking function to apply if that type is specified (optional). The
-function is passed one argument, the value of the object.}
-
-\item{error}{An error function to apply if the check fails.
-(optional). The function is passed the object name and value in two arguments.}
-
-\item{document}{A character vector that contains the documentation
-annotation for the type, optional and currently unused.}
-
-\item{machine_type}{A character vector that contains the machine type annotation
-for the type, optional and currently unused.}
-
-\item{...}{Additional optional fields.}
+\item{name}{Type name to retrieve}
+}
+\value{
+A type object if defined, or \code{NULL}
 }
 \description{
-Define a new type
+Retrieve a given type from the type registry
 }
 
