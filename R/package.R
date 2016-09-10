@@ -200,11 +200,13 @@ type_check_package <- function(env = parent.frame(), ...) {
   objects <- ls(env, all.names = TRUE)
   for (name in objects) {
     fun <- get(name, envir = env)
-    if (!is.function(fun)) { next }
+    if (!is.function(fun)) {
+      next
+    }
     fun <- type_check(fun, ...)
     assign(name, fun, envir = env)
-    invisible()
   }
+  invisible()
 }
 
 #' @export

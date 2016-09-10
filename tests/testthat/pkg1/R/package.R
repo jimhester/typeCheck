@@ -4,10 +4,12 @@ NULL
 type.character <- type_define("character", check = is.character)
 type.integer <- type_define("integer", check = is.integer)
 
+#' @export
 prefix <- function(str = ? character, len = ? integer) {
   substring(str, 1, len) ? character
 }
 
+#' @export
 suffix <- function(str = ? character, len = ? integer) {
   substring(str, nchar(str) - len + 1, nchar(str))
 } ? character

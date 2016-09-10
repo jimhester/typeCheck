@@ -18,6 +18,14 @@ test_that("functions without checks", {
   expect_identical(formals(f2), formals(f))
 })
 
+test_that("type_check fails if an undefined type", {
+  f1 <- function(blah = ? numeric) blah + 1
+  expect_error((type_check(f1))(1), "'numeric' is an undefined type")
+
+  f2 <- function(blah = 1 ? numeric) blah + 1
+  expect_error((type_check(f2))(), "'numeric' is an undefined type")
+})
+
 test_that("type_check adds a check if a defined type in formals", {
   type.numeric <- type_define("numeric", check = function(x) is.numeric(x))
   f1 <- function(blah = 1 ? numeric) blah
