@@ -1,5 +1,5 @@
 #' @importFrom typeCheck type type_define
-NULL
+typeCheck::type_check_package()
 
 type.character <- type_define(check = is.character)
 type.integer <- type_define(check = is.integer)
@@ -13,7 +13,3 @@ prefix <- function(str = ? character, len = ? integer) {
 suffix <- function(str = ? character, len = ? integer) {
   substring(str, nchar(str) - len + 1, nchar(str))
 } ? character
-
-.onLoad <- function(libname, pkgname) {
-  typeCheck::type_check_package(asNamespace(pkgname))
-}

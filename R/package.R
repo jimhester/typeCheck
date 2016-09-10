@@ -196,33 +196,38 @@ type_check <- function (x, where = c("arguments", "body", "return")) {
 
 #' Add type checking to all functions in a package
 #'
-#' This function can either be placed at the end of the collation order, or in
-#' the packages \code{\link{.onLoad}} function.
-#' @param env The package environment to modify functions in.
+#' This function can be placed anywhere in the package code and will be
+#' installed just before the lazy load database is populated. The idea for this
+#' function and the implementation implementation borrows heavily from
+#' \href{https://github.com/gaborcsardi/argufy/blob/bceef7904eef178c9aa67709940a29c1483c3c13/R/transform.R#L115-L142}{argufy::argufy_me()}.
 #' @param ... Additional arguments passed to \code{\link{type_check}}
 #' @export
 #' @examples
 #' \dontrun{
-#' # Simply put the following after all function definitions in package to add
-#' checks on package installation.
-#' typeCheck::type_check_package(asNamespace(pkgname))
-#'
-#' # Alternatively can add the checks when the package is loaded.
-#' .onLoad <- function(libname, pkgname) {
-#'   typeCheck::type_check_package(asNamespace(pkgname))
+#' typeCheck::type_check_package()
 #' }
-#' }
-type_check_package <- function(env = parent.frame(), ...) {
-  objects <- ls(env, all.names = TRUE)
-  for (name in objects) {
-    fun <- get(name, envir = env)
-    if (!is.function(fun)) {
-      next
+type_check_package <- function(...) {
+  trace("makeLazyLoadDB", where = asNamespace("tools"), function() {
+
+    # installing documentation, so just return
+    if (is.na(find_parent("code2LazyLoadDB"))) {
+      return()
     }
-    fun <- type_check(fun, ...)
-    assign(name, fun, envir = env)
-  }
-  invisible()
+
+    # Get the from argument from the makeLazyLoadDB call, which is the package
+    # namespace
+    env <- get("from", sys.frame(find_parent("makeLazyLoadDB")))
+
+    objects <- ls(env, all.names = TRUE)
+    for (name in objects) {
+      fun <- get(name, envir = env)
+      if (!is.function(fun)) {
+        next
+      }
+      fun <- type_check(fun, ...)
+      assign(name, fun, envir = env)
+    }
+  })
 }
 
 #' @export
