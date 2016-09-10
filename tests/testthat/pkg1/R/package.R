@@ -6,7 +6,7 @@ type.integer <- type_define(check = is.integer)
 
 #' @export
 prefix <- function(str = ? character, len = ? integer) {
-  substring(str, 1, len) ? character
+  substring(str, 1, len) ? length_one
 }
 
 #' @export
