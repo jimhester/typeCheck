@@ -193,9 +193,15 @@ type_check <- function (x, where = c("arguments", "body", "return")) {
 #' @export
 #' @examples
 #' \dontrun{
-#' .onLoad <- typeCheck::type_check_package
+#' # Simply put the following after all function definitions in package to add
+#' checks on package installation.
+#' typeCheck::type_check_package(asNamespace(pkgname))
 #'
-#'}
+#' # Alternatively can add the checks when the package is loaded.
+#' .onLoad <- function(libname, pkgname) {
+#'   typeCheck::type_check_package(asNamespace(pkgname))
+#' }
+#' }
 type_check_package <- function(env = parent.frame(), ...) {
   objects <- ls(env, all.names = TRUE)
   for (name in objects) {

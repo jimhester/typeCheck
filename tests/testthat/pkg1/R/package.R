@@ -14,4 +14,6 @@ suffix <- function(str = ? character, len = ? integer) {
   substring(str, nchar(str) - len + 1, nchar(str))
 } ? character
 
-typeCheck::type_check_package()
+.onLoad <- function(libname, pkgname) {
+  typeCheck::type_check_package(asNamespace(pkgname))
+}

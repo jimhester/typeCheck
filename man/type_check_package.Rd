@@ -15,8 +15,14 @@ a drop-in for the \code{\link{.onLoad}} function.
 }
 \examples{
 \dontrun{
-.onLoad <- typeCheck::type_check_package
+# Simply put the following after all function definitions in package to add
+checks on package installation.
+typeCheck::type_check_package(asNamespace(pkgname))
 
+# Alternatively can add the checks when the package is loaded.
+.onLoad <- function(libname, pkgname) {
+  typeCheck::type_check_package(asNamespace(pkgname))
+}
 }
 }
 
