@@ -152,8 +152,3 @@ test_that("print.type_check prints the original function definition", {
     capture_output(print(f2)),
     capture_output(print(f1)))
 })
-
-clear_pkgconfig <- function() {
-  remove(list = ls(envir = pkgconfig:::config), envir = pkgconfig:::config)
-}
-clear_pkgconfig()
