@@ -13,14 +13,12 @@ Type check allows use of [types](https://github.com/jimhester/types) to automati
 
 ``` r
 type.numeric <- type_define(check = is.numeric)
-#> Error in eval(expr, envir, enclos): could not find function "type_define"
 
 f <- type_check(function(x = ? numeric) x)
-#> Error in eval(expr, envir, enclos): could not find function "type_check"
 f(1)
-#> Error in eval(expr, envir, enclos): could not find function "f"
+#> [1] 1
 f("txt")
-#> Error in eval(expr, envir, enclos): could not find function "f"
+#> Error: `x` is a `character` not a `numeric`.
 ```
 
 Types are defined as methods of the `type` generic. This means they follow the same properties as normal S3 methods and can be exported and imported to and from packages like all other functions.
@@ -33,11 +31,9 @@ type.numeric <- type_define(
   error = function(obj_name, obj_value, type) {
      sprintf("%s: '%s' is not a number!", obj_name, obj_value)
   })
-#> Error in eval(expr, envir, enclos): could not find function "type_define"
 f <- type_check(function(x = ? numeric) x)
-#> Error in eval(expr, envir, enclos): could not find function "type_check"
 f("txt")
-#> Error in eval(expr, envir, enclos): could not find function "f"
+#> Error: x: 'txt' is not a number!
 ```
 
 ### Packages
