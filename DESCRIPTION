@@ -6,8 +6,7 @@ Description: Adds type checks to R code annotated with types as specified in the
 Depends:
     R (>= 3.3.0)
 Imports:
-  pkgconfig
-Enhances: types
+  types
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
