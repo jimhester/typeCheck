@@ -3,7 +3,7 @@
 Type Check
 ----------
 
-[![Travis-CI Build Status](https://travis-ci.org/jimhester/typeCheck.svg?branch=%20master)](https://travis-ci.org/jimhester/typeCheck) [![Coverage Status](https://img.shields.io/codecov/c/github/jimhester/typeCheck/%20master.svg)](https://codecov.io/github/jimhester/typeCheck?branch=master)
+[![Travis-CI Build Status](https://travis-ci.org/jimhester/typeCheck.svg?branch=master)](https://travis-ci.org/jimhester/typeCheck) [![Coverage Status](https://img.shields.io/codecov/c/github/jimhester/typeCheck/master.svg)](https://codecov.io/github/jimhester/typeCheck?branch=master)
 
 Type check allows use of [types](https://github.com/jimhester/types) to automatically add checking code when types are annotated.
 
